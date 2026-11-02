@@ -168,6 +168,8 @@ namespace HitmanPatcher
                 CurrentSettings = optionsForm.Settings;
                 updateTrayDomains();
                 ToggleTheme(CurrentSettings.darkModeEnabled);
+                // Save right away so the Dev Panel's product list reaches the server without closing the patcher.
+                CurrentSettings.SaveToFile();
             }
         }
 

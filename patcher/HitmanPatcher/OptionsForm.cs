@@ -10,6 +10,8 @@ namespace HitmanPatcher
         private string customDomain;
         private bool startInTray, minimizeToTray;
         private List<string> trayDomains;
+        private bool devOverrideEntitlements;
+        private List<string> devSelectedProducts;
 
         private void toggleTheme(bool darkModeEnabled)
         {
@@ -32,6 +34,10 @@ namespace HitmanPatcher
             buttonTrayOptions.FlatStyle = darkModeEnabled ? FlatStyle.Flat : FlatStyle.Standard;
             buttonTrayOptions.BackColor = darkModeEnabled ? Color.FromArgb(19, 21, 22) : SystemColors.Control;
             buttonTrayOptions.ForeColor = darkModeEnabled ? Color.White : SystemColors.ControlText;
+
+            buttonDevPanel.FlatStyle = darkModeEnabled ? FlatStyle.Flat : FlatStyle.Standard;
+            buttonDevPanel.BackColor = darkModeEnabled ? Color.FromArgb(19, 21, 22) : SystemColors.Control;
+            buttonDevPanel.ForeColor = darkModeEnabled ? Color.White : SystemColors.ControlText;
         }
 
         public OptionsForm(Settings currentSettings)
@@ -68,7 +74,9 @@ namespace HitmanPatcher
                     darkModeEnabled = darkModeBox.Checked,
                     startInTray = startInTray,
                     minimizeToTray = minimizeToTray,
-                    trayDomains = trayDomains
+                    trayDomains = trayDomains,
+                    devOverrideEntitlements = devOverrideEntitlements,
+                    devSelectedProducts = devSelectedProducts
                 };
             private set
             {
@@ -79,6 +87,8 @@ namespace HitmanPatcher
                 startInTray = value.startInTray;
                 minimizeToTray = value.minimizeToTray;
                 trayDomains = value.trayDomains;
+                devOverrideEntitlements = value.devOverrideEntitlements;
+                devSelectedProducts = value.devSelectedProducts;
             }
         }
 
@@ -86,6 +96,16 @@ namespace HitmanPatcher
         {
             DialogResult = DialogResult.OK;
             Close();
+        }
+
+        private void buttonDevPanel_Click(object sender, EventArgs e)
+        {
+            DevPanelForm devPanel = new DevPanelForm(devOverrideEntitlements, devSelectedProducts, darkModeBox.Checked);
+            if (devPanel.ShowDialog() == DialogResult.OK)
+            {
+                devOverrideEntitlements = devPanel.overrideEntitlements;
+                devSelectedProducts = devPanel.selectedProducts;
+            }
         }
 
         private void buttonTrayOptions_Click(object sender, EventArgs e)

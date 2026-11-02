@@ -35,6 +35,7 @@
             this.dynResources = new System.Windows.Forms.CheckBox();
             this.checkBoxHttp = new System.Windows.Forms.CheckBox();
             this.buttonTrayOptions = new System.Windows.Forms.Button();
+            this.buttonDevPanel = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             //
@@ -124,12 +125,24 @@
             this.buttonTrayOptions.UseVisualStyleBackColor = true;
             this.buttonTrayOptions.Click += new System.EventHandler(this.buttonTrayOptions_Click);
             //
+            // buttonDevPanel
+            //
+            this.buttonDevPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonDevPanel.Location = new System.Drawing.Point(302, 127);
+            this.buttonDevPanel.Name = "buttonDevPanel";
+            this.buttonDevPanel.Size = new System.Drawing.Size(166, 32);
+            this.buttonDevPanel.TabIndex = 6;
+            this.buttonDevPanel.Text = "Dev Panel";
+            this.buttonDevPanel.UseVisualStyleBackColor = true;
+            this.buttonDevPanel.Click += new System.EventHandler(this.buttonDevPanel_Click);
+            //
             // OptionsForm
             //
             this.AccessibleName = "Advanced options menu";
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(479, 190);
+            this.Controls.Add(this.buttonDevPanel);
             this.Controls.Add(this.buttonTrayOptions);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.buttonCancel);
@@ -146,6 +159,7 @@
         }
 
         private System.Windows.Forms.Button buttonTrayOptions;
+        private System.Windows.Forms.Button buttonDevPanel;
 
         #endregion
 
