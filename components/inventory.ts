@@ -58,6 +58,7 @@ import type { Controller } from "./controller"
 import { getUserData } from "./databaseHandler"
 import assert from "assert"
 import { getFlag } from "./flags"
+import { applyDevEntitlements } from "./devEntitlements"
 import { UnlockableMasteryData } from "./types/mastery"
 import { attainableDefaults, defaultSuits } from "./utils"
 import { log, LogLevel } from "./loggingInterop"
@@ -376,6 +377,9 @@ export class InventoryService {
      * Filters allowed unlockables
      */
     private filterAllowedContent(gameVersion: GameVersion, entP: string[]) {
+        // Dev testing: may replace the real entitlements (see devEntitlements.ts)
+        const devEntP = applyDevEntitlements(entP)
+
         return function (unlockContainer?: {
             InstanceId: string
             ProfileId: string
@@ -403,7 +407,7 @@ export class InventoryService {
                 return true
             }
 
-            const e = entP
+            const e = devEntP
             const { Id: id } = unlockContainer!.Unlockable
 
             if (!e) {
