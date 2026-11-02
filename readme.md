@@ -1,4 +1,4 @@
-# The Peacock Project
+# The Peacock Project-maybe
 
 [![Discord](https://img.shields.io/discord/826809653181808651?label=Discord&logo=discord&logoColor=white&style=for-the-badge)](https://discord.gg/F8qQTfnajw)
 
