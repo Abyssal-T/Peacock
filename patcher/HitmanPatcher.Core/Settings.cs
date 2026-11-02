@@ -11,6 +11,8 @@ namespace HitmanPatcher
         public bool minimizeToTray;
         public bool darkModeEnabled;
         public List<string> trayDomains;
+        public bool devOverrideEntitlements;
+        public List<string> devSelectedProducts;
 
         public Settings()
         {
@@ -29,6 +31,8 @@ namespace HitmanPatcher
             startInTray = false;
             minimizeToTray = false;
             trayDomains = new List<string>();
+            devOverrideEntitlements = false;
+            devSelectedProducts = new List<string>();
         }
 
         private static string GetSavePath()
@@ -54,6 +58,31 @@ namespace HitmanPatcher
             return config2;
         }
 
+        // The server (components/devEntitlements.ts) reads this file from its working directory,
+        // which is the folder PeacockPatcher.exe lives in. Deleting it turns the override off.
+        private const string DevEntitlementsFileName = "devEntitlements.txt";
+
+        private void WriteDevEntitlementsFile()
+        {
+            try
+            {
+                string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DevEntitlementsFileName);
+
+                if (devOverrideEntitlements)
+                {
+                    File.WriteAllLines(path, devSelectedProducts);
+                }
+                else if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+            }
+            catch (Exception)
+            {
+                // Dev testing only - never stop the patcher over this.
+            }
+        }
+
         public void SaveToFile()
         {
             List<string> lines = new List<string>();
@@ -63,6 +92,12 @@ namespace HitmanPatcher
 			lines.Add(string.Format("DarkModeEnabled={0}", darkModeEnabled));
             lines.Add(string.Format("startInTray={0}", startInTray));
             lines.Add(string.Format("minToTray={0}", minimizeToTray));
+            lines.Add(string.Format("devOverrideEntitlements={0}", devOverrideEntitlements));
+
+            foreach (string product in devSelectedProducts)
+            {
+                lines.Add(string.Format("devProduct={0}", product));
+            }
 
             foreach (string domain in trayDomains)
             {
@@ -70,6 +105,7 @@ namespace HitmanPatcher
             }
 
             File.WriteAllLines(GetSavePath(), lines);
+            WriteDevEntitlementsFile();
         }
 
         public static Settings GetFromFile()
@@ -109,6 +145,12 @@ namespace HitmanPatcher
                                 break;
                             case "minToTray":
                                 result.minimizeToTray = bool.Parse(linecontents[1]);
+                                break;
+                            case "devOverrideEntitlements":
+                                result.devOverrideEntitlements = bool.Parse(linecontents[1]);
+                                break;
+                            case "devProduct":
+                                result.devSelectedProducts.Add(linecontents[1]);
                                 break;
                             case "trayDomain":
                                 result.trayDomains.Add(linecontents[1]);
