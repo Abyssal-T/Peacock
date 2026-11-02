@@ -69,7 +69,14 @@ export const DEV_PRODUCTS: Record<string, string[]> = {
     // Concrete Art pack
     CONCRETEART: ["a1e9a63fa4f3425aa66b9b8fa3c9cc35", "2184790"],
     // Sambuca pack
-    SAMBUCA: ["9220c020262f420da06eb46a4b1ce86f", "2828470", "6cdf07da030d4f66acd50eaf3cd234c7", "2973650", "16bcef4f91674b00ba3d7f2d4f629cec", "4542910"],
+    SAMBUCA: [
+        "9220c020262f420da06eb46a4b1ce86f",
+        "2828470",
+        "6cdf07da030d4f66acd50eaf3cd234c7",
+        "2973650",
+        "16bcef4f91674b00ba3d7f2d4f629cec",
+        "4542910",
+    ],
     // Tomorrowland pack
     TOMORROWLAND: ["f04198e0ffcf49079b5ec77bb6b66891", "3110360"],
     // Lambic pack
