@@ -21,6 +21,7 @@ import axios, { AxiosError } from "axios"
 import type { NamespaceEntitlementEpic, RequestWithJwt } from "./types/types"
 import { getUserData } from "./databaseHandler"
 import { log, LogLevel } from "./loggingInterop"
+import { applyDevEntitlements } from "./devEntitlements"
 
 export const H3_EPIC_ENTITLEMENTS = [
     // DUBAI:
@@ -171,7 +172,8 @@ export function getPlatformEntitlements(
     const exts = getUserData(req.jwt.unique_name, req.gameVersion).Extensions
         .entP
 
-    res.json(exts)
+    // Dev testing: may replace the real entitlements (see devEntitlements.ts)
+    res.json(applyDevEntitlements(exts))
 }
 
 /**
