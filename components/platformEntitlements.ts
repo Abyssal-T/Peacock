@@ -173,7 +173,15 @@ export function getPlatformEntitlements(
         .entP
 
     // Dev testing: may replace the real entitlements (see devEntitlements.ts)
-    res.json(applyDevEntitlements(exts))
+    const sent = applyDevEntitlements(exts)
+
+    log(
+        LogLevel.INFO,
+        `Sending ${sent.length} entitlement(s) to the game${sent === exts ? "" : " (dev override)"}.`,
+        "entitlements",
+    )
+
+    res.json(sent)
 }
 
 /**
