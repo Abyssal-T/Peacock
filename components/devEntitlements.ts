@@ -116,8 +116,8 @@ function announce(signature: string, message: string): void {
 
 /**
  * Returns the entitlements to use for ownership checks.
- * Must be used everywhere the server reads a user's owned products (inventory,
- * the entitlements sent to the game, web features), never persisted.
+ * Used wherever the server reads a user's owned products (inventory and
+ * the entitlements sent to the game). Never persisted.
  *
  * @param real The user's real entitlements.
  */
