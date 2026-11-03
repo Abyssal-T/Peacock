@@ -17,6 +17,7 @@
  */
 
 import { existsSync, readFileSync } from "fs"
+import { resolve } from "path"
 import { log, LogLevel } from "./loggingInterop"
 
 /**
@@ -98,13 +99,34 @@ export const DEV_PRODUCTS: Record<string, string[]> = {
     SHAMROCK: ["4bbcb2ba387642e694d3c9c9b74b4919", "5235590"],
 }
 
+let lastAnnounced: string | undefined
+
+/**
+ * Logs (at info level, so it is visible by default) only when the dev state changes,
+ * so the console is not spammed on every inventory build.
+ */
+function announce(signature: string, message: string): void {
+    if (signature === lastAnnounced) {
+        return
+    }
+
+    lastAnnounced = signature
+    log(LogLevel.INFO, message, "DevEntitlements")
+}
+
 /**
  * Returns the entitlements to use for ownership checks.
+ * Used wherever the server reads a user's owned products (inventory and
+ * the entitlements sent to the game). Never persisted.
  *
  * @param real The user's real entitlements.
  */
 export function applyDevEntitlements(real: string[]): string[] {
     if (!existsSync(DEV_ENTITLEMENTS_FILE)) {
+        announce(
+            "off",
+            `${resolve(DEV_ENTITLEMENTS_FILE)} not found - using real entitlements.`,
+        )
         return real
     }
 
@@ -133,10 +155,9 @@ export function applyDevEntitlements(real: string[]): string[] {
         }
     }
 
-    log(
-        LogLevel.DEBUG,
-        `Dev entitlements active: ${selected.length} product(s) selected.`,
-        "DevEntitlements",
+    announce(
+        selected.join(","),
+        `Dev entitlements ACTIVE from ${resolve(DEV_ENTITLEMENTS_FILE)}: ${selected.length} product(s) selected (${selected.join(", ") || "none"}). Real entitlements are ignored.`,
     )
 
     return [...ids]
