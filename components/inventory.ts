@@ -800,6 +800,12 @@ export class InventoryService {
             unlockable!.ProfileId = profileId
         }
 
+        log(
+            LogLevel.INFO,
+            `Built ${gameVersion} inventory for ${profileId}: ${filtered.length} item(s) kept, ${unlockables.length - filtered.length} filtered out by ownership/broken items.`,
+            "inventory",
+        )
+
         this.inventoryUserCache.set(profileId, filtered)
 
         // It is highly unlikely that we need to add a suit but we don't have the inventory in cache, but just in case
