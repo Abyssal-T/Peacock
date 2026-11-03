@@ -27,6 +27,8 @@ namespace HitmanPatcher
             new[] { "MAKESHIFT", "Makeshift pack" },
             new[] { "CONCRETEART", "Concrete Art pack" },
             new[] { "SAMBUCA", "Sambuca pack" },
+            new[] { "PENICILLIN", "Penicillin ET pack (also unlocks Penicillin items)" },
+            new[] { "VANITY_SPORT", "Vanity Sport pack (also unlocks Penicillin items)" },
             new[] { "TOMORROWLAND", "Tomorrowland pack" },
             new[] { "LAMBIC", "Lambic pack" },
             new[] { "FRENCHMARTINI", "French Martini pack" },

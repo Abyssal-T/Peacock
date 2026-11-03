@@ -68,15 +68,12 @@ export const DEV_PRODUCTS: Record<string, string[]> = {
     MAKESHIFT: ["08d2bc4d20754191b6c488541d2b4fa1", "2184791"],
     // Concrete Art pack
     CONCRETEART: ["a1e9a63fa4f3425aa66b9b8fa3c9cc35", "2184790"],
-    // Sambuca pack
-    SAMBUCA: [
-        "9220c020262f420da06eb46a4b1ce86f",
-        "2828470",
-        "6cdf07da030d4f66acd50eaf3cd234c7",
-        "2973650",
-        "16bcef4f91674b00ba3d7f2d4f629cec",
-        "4542910",
-    ],
+    // Sambuca pack (H3 Sambuca only - Penicillin and Vanity Sport are separate products)
+    SAMBUCA: ["9220c020262f420da06eb46a4b1ce86f", "2828470"],
+    // H3 Elusive Target: Penicillin (also unlocks the Penicillin items)
+    PENICILLIN: ["6cdf07da030d4f66acd50eaf3cd234c7", "2973650"],
+    // H3 Vanity Sport pack (also unlocks the Penicillin items)
+    VANITY_SPORT: ["16bcef4f91674b00ba3d7f2d4f629cec", "4542910"],
     // Tomorrowland pack
     TOMORROWLAND: ["f04198e0ffcf49079b5ec77bb6b66891", "3110360"],
     // Lambic pack

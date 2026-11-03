@@ -77,9 +77,10 @@ namespace HitmanPatcher
                     File.Delete(path);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Dev testing only - never stop the patcher over this.
+                // Dev testing only - never stop the patcher over this, but don't fail silently either.
+                System.Diagnostics.Debug.WriteLine("Could not update " + DevEntitlementsFileName + ": " + ex.Message);
             }
         }
 
@@ -126,28 +127,31 @@ namespace HitmanPatcher
                             continue;
 
                         string[] linecontents = line.Split(new char[] { '=' }, 2);
+                        if (linecontents.Length < 2)
+                            continue;
+
                         switch (linecontents[0])
                         {
                             case "CustomConfigDomain":
                                 result.patchOptions.CustomConfigDomain = linecontents[1];
                                 break;
                             case "UseHttp":
-                                result.patchOptions.UseHttp = bool.Parse(linecontents[1]);
+                                if (bool.TryParse(linecontents[1], out bool useHttp)) result.patchOptions.UseHttp = useHttp;
                                 break;
                             case "DisableForceDynamicResources":
-                                result.patchOptions.DisableForceOfflineOnFailedDynamicResources = bool.Parse(linecontents[1]);
+                                if (bool.TryParse(linecontents[1], out bool disableForce)) result.patchOptions.DisableForceOfflineOnFailedDynamicResources = disableForce;
                                 break;
 							case "DarkModeEnabled":
-								result.darkModeEnabled = bool.Parse(linecontents[1]);
+								if (bool.TryParse(linecontents[1], out bool dark)) result.darkModeEnabled = dark;
 								break;
                             case "startInTray":
-                                result.startInTray = bool.Parse(linecontents[1]);
+                                if (bool.TryParse(linecontents[1], out bool tray)) result.startInTray = tray;
                                 break;
                             case "minToTray":
-                                result.minimizeToTray = bool.Parse(linecontents[1]);
+                                if (bool.TryParse(linecontents[1], out bool minTray)) result.minimizeToTray = minTray;
                                 break;
                             case "devOverrideEntitlements":
-                                result.devOverrideEntitlements = bool.Parse(linecontents[1]);
+                                if (bool.TryParse(linecontents[1], out bool devOverride)) result.devOverrideEntitlements = devOverride;
                                 break;
                             case "devProduct":
                                 result.devSelectedProducts.Add(linecontents[1]);
