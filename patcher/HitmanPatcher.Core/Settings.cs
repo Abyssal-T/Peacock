@@ -13,6 +13,8 @@ namespace HitmanPatcher
         public List<string> trayDomains;
         public bool devOverrideEntitlements;
         public List<string> devSelectedProducts;
+        // In-memory only (never saved): the key derived from the Dev Panel password for this session.
+        public string devKeyHex;
 
         public Settings()
         {
@@ -70,7 +72,12 @@ namespace HitmanPatcher
 
                 if (devOverrideEntitlements)
                 {
-                    File.WriteAllLines(path, devSelectedProducts);
+                    // Without the password-derived key we cannot sign the file, so leave any existing
+                    // (signed, expiring) file as it is. The server ignores unsigned or expired files.
+                    if (devKeyHex != null)
+                    {
+                        File.WriteAllLines(path, DevAuth.BuildFileLines(devKeyHex, devSelectedProducts, DateTime.UtcNow));
+                    }
                 }
                 else if (File.Exists(path))
                 {

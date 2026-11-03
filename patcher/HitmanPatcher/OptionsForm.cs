@@ -12,6 +12,7 @@ namespace HitmanPatcher
         private List<string> trayDomains;
         private bool devOverrideEntitlements;
         private List<string> devSelectedProducts;
+        private string devKeyHex;
 
         private void toggleTheme(bool darkModeEnabled)
         {
@@ -76,7 +77,8 @@ namespace HitmanPatcher
                     minimizeToTray = minimizeToTray,
                     trayDomains = trayDomains,
                     devOverrideEntitlements = devOverrideEntitlements,
-                    devSelectedProducts = devSelectedProducts
+                    devSelectedProducts = devSelectedProducts,
+                    devKeyHex = devKeyHex
                 };
             private set
             {
@@ -89,6 +91,7 @@ namespace HitmanPatcher
                 trayDomains = value.trayDomains;
                 devOverrideEntitlements = value.devOverrideEntitlements;
                 devSelectedProducts = value.devSelectedProducts;
+                devKeyHex = value.devKeyHex;
             }
         }
 
@@ -100,6 +103,27 @@ namespace HitmanPatcher
 
         private void buttonDevPanel_Click(object sender, EventArgs e)
         {
+            if (devKeyHex == null)
+            {
+                using (PasswordPrompt prompt = new PasswordPrompt(darkModeBox.Checked))
+                {
+                    if (prompt.ShowDialog(this) != DialogResult.OK)
+                    {
+                        return;
+                    }
+
+                    string key = DevAuth.TryDeriveKey(prompt.Password);
+
+                    if (key == null)
+                    {
+                        MessageBox.Show(this, "Wrong password.", "Dev Panel", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    devKeyHex = key;
+                }
+            }
+
             DevPanelForm devPanel = new DevPanelForm(devOverrideEntitlements, devSelectedProducts, darkModeBox.Checked);
             if (devPanel.ShowDialog() == DialogResult.OK)
             {

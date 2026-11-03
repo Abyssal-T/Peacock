@@ -18,14 +18,17 @@
 
 import { existsSync, readFileSync } from "fs"
 import { resolve } from "path"
+import { createHash, createHmac, timingSafeEqual } from "crypto"
 import { log, LogLevel } from "./loggingInterop"
 
 /**
  * DEV TESTING ONLY.
  *
- * When a file named devEntitlements.txt exists next to options.ini, the entitlements the
- * server believes the user owns are REPLACED by the products listed in that file
- * (one product key per line). This lets you test any combination of owned products
+ * When a valid, SIGNED file named devEntitlements.txt exists next to options.ini, the
+ * entitlements the server believes the user owns are REPLACED by the products listed in
+ * that file (one product key per line). The file is written by the patcher's Dev Panel,
+ * which is protected by a password; the server ignores any file that is unsigned,
+ * tampered with or expired, so end users cannot unlock anything by editing it. This lets you test any combination of owned products
  * against the real ownership logic in inventory.ts. Delete the file to go back to normal.
  *
  * The IDs below are the ones inventory.ts checks (Epic hex id + Steam app id of each product).
@@ -105,19 +108,111 @@ let lastAnnounced: string | undefined
  * Logs (at info level, so it is visible by default) only when the dev state changes,
  * so the console is not spammed on every inventory build.
  */
-function announce(signature: string, message: string): void {
+function announce(
+    signature: string,
+    message: string,
+    level: LogLevel = LogLevel.INFO,
+): void {
     if (signature === lastAnnounced) {
         return
     }
 
     lastAnnounced = signature
-    log(LogLevel.INFO, message, "DevEntitlements")
+    log(level, message, "DevEntitlements")
+}
+
+/**
+ * SHA-256 of the dev key (the key itself is derived from the dev password by the patcher
+ * and is never stored here). Knowing this hash does not let anyone produce a valid file.
+ */
+export const DEV_KEY_VERIFIER =
+    "0f2eb7d692c2e4a0ec0b7d0e4cccefe7d5cbed3929ae56cd13d3f56f34fdbd0f"
+
+export type DevFileResult =
+    | { ok: true; products: string[] }
+    | { ok: false; reason: string }
+
+const HEX_64 = /^[0-9a-f]{64}$/
+
+function safeEqualHex(a: string, b: string): boolean {
+    const ba = Buffer.from(a, "hex")
+    const bb = Buffer.from(b, "hex")
+
+    return ba.length === bb.length && timingSafeEqual(ba, bb)
+}
+
+/**
+ * Parses and authenticates the contents of devEntitlements.txt.
+ *
+ * Format:
+ *   #auth:<64 hex chars - the dev key>
+ *   #expires:<unix seconds>
+ *   #sig:<64 hex chars - HMAC-SHA256(key, expires + "\n" + products.join("\n"))>
+ *   PRODUCT_KEY (one per line)
+ *
+ * @param content The file's text.
+ * @param verifier Hex SHA-256 of the valid dev key.
+ * @param nowSec The current time in unix seconds.
+ */
+export function verifyDevFile(
+    content: string,
+    verifier: string,
+    nowSec: number,
+): DevFileResult {
+    const header: Record<string, string> = {}
+    const products: string[] = []
+
+    for (const raw of content.split(/\r?\n/)) {
+        const line = raw.trim()
+
+        if (line.length === 0) {
+            continue
+        }
+
+        const match = /^#(auth|expires|sig):(.*)$/.exec(line)
+
+        if (match) {
+            header[match[1]] = match[2].trim().toLowerCase()
+        } else if (!line.startsWith("#")) {
+            products.push(line)
+        }
+    }
+
+    const { auth, expires, sig } = header
+
+    if (!auth || !expires || !sig) {
+        return { ok: false, reason: "file is not signed" }
+    }
+
+    if (!HEX_64.test(auth) || !HEX_64.test(sig) || !/^\d+$/.test(expires)) {
+        return { ok: false, reason: "file is malformed" }
+    }
+
+    const keyHash = createHash("sha256")
+        .update(Buffer.from(auth, "hex"))
+        .digest("hex")
+
+    if (!safeEqualHex(keyHash, verifier)) {
+        return { ok: false, reason: "wrong key" }
+    }
+
+    const expected = createHmac("sha256", Buffer.from(auth, "hex"))
+        .update(`${expires}\n${products.join("\n")}`)
+        .digest("hex")
+
+    if (!safeEqualHex(expected, sig)) {
+        return { ok: false, reason: "signature mismatch (file was edited)" }
+    }
+
+    if (Number(expires) <= nowSec) {
+        return { ok: false, reason: "file has expired" }
+    }
+
+    return { ok: true, products }
 }
 
 /**
  * Returns the entitlements to use for ownership checks.
- * Used wherever the server reads a user's owned products (inventory and
- * the entitlements sent to the game). Never persisted.
  *
  * @param real The user's real entitlements.
  */
@@ -125,17 +220,28 @@ export function applyDevEntitlements(real: string[]): string[] {
     if (!existsSync(DEV_ENTITLEMENTS_FILE)) {
         announce(
             "off",
-            `${resolve(DEV_ENTITLEMENTS_FILE)} not found - using real entitlements.`,
+            "No dev entitlements file - using real entitlements.",
+            LogLevel.DEBUG,
         )
         return real
     }
 
-    const selected = readFileSync(DEV_ENTITLEMENTS_FILE)
-        .toString()
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0)
+    const result = verifyDevFile(
+        readFileSync(DEV_ENTITLEMENTS_FILE).toString(),
+        DEV_KEY_VERIFIER,
+        Math.floor(Date.now() / 1000),
+    )
 
+    if (!result.ok) {
+        announce(
+            `invalid:${result.reason}`,
+            `Ignoring ${resolve(DEV_ENTITLEMENTS_FILE)}: ${result.reason}. Using real entitlements.`,
+            LogLevel.WARN,
+        )
+        return real
+    }
+
+    const selected = result.products
     const ids = new Set<string>()
 
     for (const key of selected) {
@@ -156,8 +262,8 @@ export function applyDevEntitlements(real: string[]): string[] {
     }
 
     announce(
-        selected.join(","),
-        `Dev entitlements ACTIVE from ${resolve(DEV_ENTITLEMENTS_FILE)}: ${selected.length} product(s) selected (${selected.join(", ") || "none"}). Real entitlements are ignored.`,
+        `ok:${selected.join(",")}`,
+        `Dev entitlements ACTIVE (signed): ${selected.length} product(s) selected (${selected.join(", ") || "none"}). Real entitlements are ignored.`,
     )
 
     return [...ids]
