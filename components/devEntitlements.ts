@@ -129,7 +129,8 @@ export const DEV_KEY_VERIFIER =
     "0f2eb7d692c2e4a0ec0b7d0e4cccefe7d5cbed3929ae56cd13d3f56f34fdbd0f"
 
 export type DevFileResult =
-    { ok: true; products: string[] } | { ok: false; reason: string }
+    | { ok: true; products: string[] }
+    | { ok: false; reason: string }
 
 const HEX_64 = /^[0-9a-f]{64}$/
 
